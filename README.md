@@ -9,11 +9,12 @@ Exploring an idle thought: how far are pairs of places from each other? How far 
 
 ## Notebook
 
-This project uses `poetry` and `pyenv` to manage the Python environment (3.9.6).
+This project uses `poetry` and `pyenv` to manage the Python environment (3.9.6). (This can currently be a little awkward with new changes in poetry, https://github.com/python-poetry/poetry/issues/4317, https://github.com/python-poetry/poetry/issues/4199#issuecomment-894094520)
 
 ```bash
 pyenv install 3.9.6
 pyenv local 3.9.6
+poetry env use $(pyenv which python)
 poetry install
 poetry run jupyter lab
 ```
