@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  app:
+    build: ./app
+    ports:
+      - 8081:80
+    env_file:
+      - ./.env
+    volumes:
+      - ./app/site:/var/www/html/
+    networks:
+      app_local:
+
+networks:
+  app_local:

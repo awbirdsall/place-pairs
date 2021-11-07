@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Distance: Ohio vs. Abroad</title>
+
+    <!-- leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+      integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+      crossorigin=""></script>
+    <!-- leaflet.arc for great circles -->
+    <script src="https://unpkg.com/leaflet-arc@1.0.2/bin/leaflet-arc.min.js"></script>
+    <!-- side by side map styling https://gist.github.com/andrewharvey/1194714 -->
+    <style type="text/css">
+        body {
+          font-family: Sans-Serif;
+          margin: 0;
+        }
+
+        /* set the two maps side by side */
+        #ohioMap {
+          height: 400px;
+          width: 50%;
+        }
+
+        #abroadMap {
+          height: 400px;
+          top: 0;
+          width: 50%;
+          position: absolute;
+          left: 50%;
+        }
+
+        .btn-default{
+          padding: 12px 18px;
+          font-size: large;
+        }
+    </style>
+  </head>
+
+  <body>
+
+    <main role="main" class="container">
+
+    <!-- leaflet maps -->
+    <div id="ohioMap"></div>
+    <div id="abroadMap"></div>
+    <div>
+      <h1>Which pair is closer?</h1>
+
+      <div id="inputDiv">
+
+        <form name="inputForm" id="inputForm">
+          <div>
+            <input type="radio" name="answer" value="ohio" id="ohio" required autocomplete="off">
+            <label for="ohio"></label>
+            <br />
+            <input type="radio" name="answer" value="abroad" id="abroad" required autocomplete="off">
+            <label for="abroad"></label>
+            <br />
+          </div>
+          <br />
+
+          <div>
+            <button type="submit" class="btn btn-default btn-lg" id="check-button"><b>Check!</b></button>
+          </div>
+        </form>
+        <br />
+        <div name="next-buttons" id="next-buttons">
+          <button type="submit" class="btn btn-default btn-lg" id="next-button" disabled onclick=showNext()><b>Next</b></button>
+          <button type="submit" class="btn btn-default btn-lg" id="reset-button" disabled onclick=resetScore()><b>Restart</b></button>
+        </div>
+      </div>
+      <div name="result-display" id="result-display">
+      </div>
+    </div>
+
+    </main><!-- /.container -->
+
+    <!-- lovingly handcrafted js -->
+    <script src="main.js"></script>
+
+  
+</body>
+</html>
