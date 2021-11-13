@@ -1,0 +1,80 @@
+html,
+body {
+  margin: 8px;
+  /* height: 100%; */
+}
+
+body {
+  font-family: Sans-Serif;
+}
+
+#content {
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: center;
+  /* min-height: 800px; */
+  /* flex: 1 1; */
+  /* order: 2; */
+  /* display: flex; */
+}
+
+/* set the two maps side by side */
+#ohioMap {
+  /* height: 800px; */
+  /* width: 50%; */
+  flex: 100 1 240px;
+  position: relative;
+  max-width: 400px;
+  /* border: 1px solid red; */
+  /* display: flex; */
+}
+#abroadMap {
+  /* height: 800px; */
+  /* width: 50%; */
+  flex: 100 1 240px;
+  position: relative;
+  max-width: 400px
+  /* border: 1px solid red; */
+  /* display: flex; */
+}
+
+/* #ohioMap > div */
+/* { */
+/*   flex: 5; */
+/* } */
+
+/* #abroadMap { */
+/*   height: 400px; */
+/*   top: 0; */
+/*   width: 50%; */
+/*   position: absolute; */
+/*   left: 50%; */
+/*   flex: 1; */
+/* } */
+
+#textDiv {
+  flex: 1;
+  /* border: 1px solid blue; */
+  /* display: none; */
+}
+
+h1{
+  font-size: x-large;
+}
+
+.btn-default{
+  padding: 8px 12px;
+  font-size: medium;
+}
+
+.outer {
+  margin: 0 auto;
+}
+
+.inner {
+  margin-left: 25px;
+}
+
+.correct {
+  color: darkblue;
+}

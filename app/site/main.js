@@ -2,9 +2,11 @@
 /* globals L */
 
 // set up leaflet map
-var oh_center = [40.3, -82.5];
-var ohioMap = L.map("ohioMap").setView(oh_center, 7);
-var abroadMap = L.map("abroadMap").setView(oh_center, 1);
+var ohioCenter = [40.2, -82.8];
+// unavoidably political
+var abroadCenter = [0.0, 33.0];
+var ohioMap = L.map("ohioMap").setView(ohioCenter, 6);
+var abroadMap = L.map("abroadMap").setView(abroadCenter, 0);
 
 var ohioLayer = L.tileLayer(
   "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
@@ -60,16 +62,18 @@ function displayPair(pair) {
     var ohioNameFirst = pair.ohio.locations[0].name + ", Ohio";
     var ohioNameSecond = pair.ohio.locations[1].name + ", Ohio";
     var ohioNames = ohioNameFirst + " ⇔ " + ohioNameSecond;
-    var ohioLabel = document.getElementById("ohio").labels[0];
-    ohioLabel.textContent = ohioNames;
+    var ohioLabel = document.getElementById("ohio-answer").labels[0];
+    ohioLabel.innerHTML = ohioNames;
 
-    var abroadNames = pair.abroad.locations[0].name + " ⇔ " + pair.abroad.locations[1].name;
-    var abroadLabel = document.getElementById("abroad").labels[0];
-    abroadLabel.textContent = abroadNames;
+    var abroadNameFirst = pair.abroad.locations[0].name;
+    var abroadNameSecond = pair.abroad.locations[1].name;
+    var abroadNames = abroadNameFirst + " ⇔ " + abroadNameSecond;
+    var abroadLabel = document.getElementById("abroad-answer").labels[0];
+    abroadLabel.innerHTML = abroadNames;
 }
 
 
-function clearMap(map) {
+function clearMap(map, center, zoom) {
   // https://stackoverflow.com/a/68555471
   map.eachLayer((layer) => {
     const hasEmptyContrib = !(layer.getAttribution && layer.getAttribution());
@@ -78,6 +82,7 @@ function clearMap(map) {
         map.removeLayer(layer);
     }
   });
+  map.setView(center, zoom);
 }
 
 function makeArc(start, end) {
@@ -90,8 +95,8 @@ function getLatLon(loc) {
     return [loc.lat, loc.lon];
 }
 
-function updateMap(locs, map) {
-    clearMap(map);
+function updateMap(locs, map, doFitBounds, center, zoom) {
+    clearMap(map, center, zoom);
 
     var polyline = makeArc(getLatLon(locs[0]), getLatLon(locs[1]), map);
 
@@ -104,28 +109,53 @@ function updateMap(locs, map) {
 
     fGroup.addTo(map);
 
-    map.fitBounds(fGroup.getBounds(), {padding: [50, 50]});
+    if (doFitBounds) {
+      map.fitBounds(fGroup.getBounds(), {padding: [50, 50], maxZoom: 6});
+    }
 }
 
 function showResult(event) {
-    var correct = checkAnswer();
+    event.preventDefault();
     numAttempted++;
-    var message = "";
+    var correct = checkAnswer();
     if (correct) {
-        numCorrect++;
-        message += "<p>Correct!</p>";
-    } else {
-        message += "<p>Incorrect.</p>";
+      numCorrect++;
     }
+    var message = "";
 
-    var distanceMessage = currentPairs.ohio.dist.toFixed(0) + " km apart in Ohio; " +
-      currentPairs.abroad.dist.toFixed(0) + " km apart abroad.";
-    message += "<p>" + distanceMessage + "</p>";
+    var ohioDistMsg = "<b>"+currentPairs.ohio.dist.toFixed(0) + " km</b>";
+    var abroadDistMsg = "<b>"+currentPairs.abroad.dist.toFixed(0) + " km</b>";
 
+    // update css to indicate which pair truly shorter
+    var trueShorter = "";
+    if (currentPairs.ohio.dist < currentPairs.abroad.dist) {
+      trueShorter = "ohio-pair";
+    } else {
+      trueShorter = "abroad-pair";
+    }
+    var shorterDiv = document.getElementById(trueShorter);
+    shorterDiv.classList.add("correct");
+
+    // display distances
+    var ohioDist = document.getElementById("ohio-dist");
+    ohioDist.innerHTML = ohioDistMsg;
+    var abroadDist = document.getElementById("abroad-dist");
+    abroadDist.innerHTML = abroadDistMsg;
+
+    // add :) or :( to choice
+    var choice = document.forms.inputForm.elements.answer.value;
+    var mood = "";
+    if (correct) {
+      mood = "&nbsp;🥳";
+    } else {
+      mood = "&nbsp;😞";
+    }
+    var answeredDist = document.getElementById(choice + "-dist");
+    answeredDist.innerHTML += mood;
 
     var numRemaining = allPairs.length - numAttempted;
-    message += "<p>" + numCorrect + " out of " + numAttempted + " correct. (" +
-        numRemaining + " remain)</p>";
+    message += "<p>" + numCorrect + " of " + numAttempted + " correct. (" +
+        numRemaining + " left)</p>";
 
     if (numAttempted == allPairs.length) {
         message += "<p><b>Quiz over, you have answered for all pairs!</b> &#x1F38A</p>";
@@ -141,8 +171,8 @@ function showResult(event) {
     var resultDisplay = document.querySelector("#result-display");
     resultDisplay.innerHTML = message;
 
-    updateMap(currentPairs.ohio.locations, ohioMap);
-    updateMap(currentPairs.abroad.locations, abroadMap);
+    updateMap(currentPairs.ohio.locations, ohioMap, false, ohioCenter, 6);
+    updateMap(currentPairs.abroad.locations, abroadMap, true, abroadCenter, 0);
 
     var checkButton = document.getElementById("check-button");
     checkButton.disabled = true;
@@ -150,15 +180,13 @@ function showResult(event) {
     if (numAttempted < allPairs.length) {
         nextButton.disabled = false;
     }
-    var resetButton = document.getElementById("reset-button");
-    resetButton.disabled = false;
 }
 
 
 function makeWikiLink(nameString) {
     // Use wikipedia search string to show results if page doesn't exist
-    return "<p><a href='https://en.wikipedia.org/w/index.php?search=" + nameString +
-        "' target='_blank' rel='noopener noreferrer'>" +nameString + "</a></p>";
+    return "<a href='https://en.wikipedia.org/w/index.php?search=" + nameString +
+        "' target='_blank' rel='noopener noreferrer'>" +nameString + "</a>";
 }
 
 
@@ -179,16 +207,41 @@ function checkAnswer() {
 function showNext() {
     // clear result display
     var resultDisplay = document.querySelector("#result-display");
-    resultDisplay.innerHTML = "<p></p>";
+    var numRemaining = allPairs.length - numAttempted;
+    var message = "<p>" + numCorrect + " of " + numAttempted + " correct. (" +
+        numRemaining + " left)</p>";
+    resultDisplay.innerHTML = message;
 
     // toggle buttons for answer state
     var checkButton = document.getElementById("check-button");
     checkButton.disabled = false;
     var nextButton = document.getElementById("next-button");
     nextButton.disabled = true;
-    var resetButton = document.getElementById("reset-button");
-    resetButton.disabled = true;
+
+    // reset maps
+    clearMap(ohioMap, ohioCenter, 6);
+    clearMap(abroadMap, abroadCenter, 0);
+
+    // reset answers
+    resetAnswers();
+
     getPairs();
+}
+
+function resetAnswers() {
+    // remove class indicating correct answer
+    document.getElementById("ohio-pair").classList.remove("correct");
+    document.getElementById("abroad-pair").classList.remove("correct");
+
+    // clear distances
+    var ohioDist = document.getElementById("ohio-dist");
+    ohioDist.innerHTML = "<br />";
+    var abroadDist = document.getElementById("abroad-dist");
+    abroadDist.innerHTML = "<br />";
+
+    // deselect radio buttons
+    document.getElementById("ohio-answer").checked = false;
+    document.getElementById("abroad-answer").checked = false;
 }
 
 function resetScore() {
@@ -218,11 +271,11 @@ function shuffle(array) {
   return array;
 }
 
-// add event listeners
-// alternatively could use single listener and then event delegation https://gomakethings.com/listening-for-click-events-with-vanilla-javascript/
-// or just button onclick
 const el = document.getElementById("inputForm");
 el.addEventListener("submit", showResult, false);
 
 window.onload = initPage(data_file);
 
+// TODO side maps on desktop
+// TODO choose how many to play
+// TODO map all Ohio locations
