@@ -3,7 +3,7 @@
 
 // set up leaflet map
 var oh_center = [40.3, -82.5];
-var ohioMap = L.map("ohioMap").setView(oh_center, 7);
+var ohioMap = L.map("ohioMap", {"tap": false}).setView(oh_center, 7);
 
 var ohioLayer = L.tileLayer(
   "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
