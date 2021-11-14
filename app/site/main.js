@@ -28,6 +28,7 @@ abroadMap.addLayer(abroadLayer);
 
 
 var allPairs = [];
+var quizPairs = [];
 var currentPairs = {};
 
 // set up score
@@ -45,16 +46,49 @@ async function initPage(data_file) {
       .catch((error) => console.log(error));
     // make accessible as global in random order
     allPairs = shuffle(pairs);
-    // For testing -- only look at subset
-    // allPairs = allPairs.slice(0, 10);
     
-    // show first random pairs
-    getPairs();
+    startQuiz();
+}
+
+function startQuiz() {
+    // get subset of pairs for quiz
+    var quizLen = 10;
+    quizPairs = getQuizPairs(allPairs, quizLen);
+    showNext();
+}
+
+function getQuizPairs(pairs, quizLen) {
+    /// get quizLen pairs from pairs, without repeating locations
+    var pickedPairs = [];
+    while (pickedPairs.length < quizLen) {
+        // naive just keep trying to pick until one meets criteria
+        var randomIndex = Math.floor(Math.random() * pairs.length);
+        var candidatePair = pairs[randomIndex];
+        if (newLocs(candidatePair, pickedPairs)) {
+            pickedPairs.push(candidatePair);
+        }
+    }
+    return pickedPairs;
+}
+
+function newLocs(candidatePair, pairs) {
+    // check whether candidatePair has new locations compared to pairs
+    var loc1 = candidatePair.ohio.locations[0].name;
+    var loc2 = candidatePair.ohio.locations[1].name;
+    for (let i = 0; i < pairs.length; i++) {
+        var check1 = pairs[i].ohio.locations[0].name;
+        var check2 = pairs[i].ohio.locations[1].name;
+        if ( (loc1 == check1) || (loc1 == check2) || (loc2 == check1) ||
+             (loc2 == check2) ) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function getPairs() {
     // update global state and display
-    currentPairs = allPairs[numAttempted];
+    currentPairs = quizPairs[numAttempted];
     displayPair(currentPairs);
 }
 
@@ -121,7 +155,6 @@ function showResult(event) {
     if (correct) {
       numCorrect++;
     }
-    var message = "";
 
     var ohioDistMsg = "<b>"+currentPairs.ohio.dist.toFixed(0) + " km</b>";
     var abroadDistMsg = "<b>"+currentPairs.abroad.dist.toFixed(0) + " km</b>";
@@ -153,12 +186,12 @@ function showResult(event) {
     var answeredDist = document.getElementById(choice + "-dist");
     answeredDist.innerHTML += mood;
 
-    var numRemaining = allPairs.length - numAttempted;
-    message += "<p>" + numCorrect + " of " + numAttempted + " correct. (" +
-        numRemaining + " left)</p>";
+    var numRemaining = quizPairs.length - numAttempted;
+    var score = "📈 " + numCorrect + "/" + numAttempted + " (" + numRemaining + ")";
 
-    if (numAttempted == allPairs.length) {
-        message += "<p><b>Quiz over, you have answered for all pairs!</b> &#x1F38A</p>";
+    var message = "";
+    if (numAttempted == quizPairs.length) {
+        message += "<p><b>Quiz over! &#x1F38A Press Restart or <a href='all_ohio.html'>see all Ohio towns</a></p>";
     }
 
     message += "<h3>Find on Wikipedia</h3>";
@@ -167,6 +200,9 @@ function showResult(event) {
     message += "<p>" + makeWikiLink(currentPairs.ohio.locations[1].name + ", Ohio") + "</p>";
     message += "<p>" + makeWikiLink(currentPairs.abroad.locations[0].name) + "</p>";
     message += "<p>" + makeWikiLink(currentPairs.abroad.locations[1].name) + "</p>";
+
+    var scoreDisplay = document.getElementById("score-display");
+    scoreDisplay.innerHTML = score;
 
     var resultDisplay = document.querySelector("#result-display");
     resultDisplay.innerHTML = message;
@@ -177,7 +213,7 @@ function showResult(event) {
     var checkButton = document.getElementById("check-button");
     checkButton.disabled = true;
     var nextButton = document.getElementById("next-button");
-    if (numAttempted < allPairs.length) {
+    if (numAttempted < quizPairs.length) {
         nextButton.disabled = false;
     }
 }
@@ -207,10 +243,8 @@ function checkAnswer() {
 function showNext() {
     // clear result display
     var resultDisplay = document.querySelector("#result-display");
-    var numRemaining = allPairs.length - numAttempted;
-    var message = "<p>" + numCorrect + " of " + numAttempted + " correct. (" +
-        numRemaining + " left)</p>";
-    resultDisplay.innerHTML = message;
+    resultDisplay.innerHTML = "";
+    var numRemaining = quizPairs.length - numAttempted;
 
     // toggle buttons for answer state
     var checkButton = document.getElementById("check-button");
@@ -245,11 +279,11 @@ function resetAnswers() {
 }
 
 function resetScore() {
-    // reset score and also reorder
-    allPairs = shuffle(allPairs);
+    // reset store
     numCorrect = 0;
     numAttempted = 0;
-    showNext();
+    // begin again
+    startQuiz();
 }
 
 function shuffle(array) {
@@ -275,7 +309,3 @@ const el = document.getElementById("inputForm");
 el.addEventListener("submit", showResult, false);
 
 window.onload = initPage(data_file);
-
-// TODO side maps on desktop
-// TODO choose how many to play
-// TODO map all Ohio locations

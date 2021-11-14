@@ -5,8 +5,6 @@ services:
     build: ./app
     ports:
       - 8081:80
-    env_file:
-      - ./.env
     volumes:
       - ./app/site:/var/www/html/
     networks:
